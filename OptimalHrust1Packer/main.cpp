@@ -16,7 +16,7 @@ void PrintVersion()
 	#else
 		printf("x86\n");
 	#endif
-	printf("version 2015.03.10\n");
+	printf("version 2020.01.02\n");
 	printf("by Eugene Larchenko (https://gitlab.com/eugene77)\n");
 	printf("\n");
 }
@@ -57,7 +57,7 @@ int main(int argc, const char* argv[])
 
 	int result = 0;
 
-	FILE* fIn = fopen(inputPath, "r+b");
+	FILE* fIn = fopen(inputPath, "rb");
 	if (!fIn)
 	{
 		printf("Error opening input file\n");
@@ -84,7 +84,7 @@ int main(int argc, const char* argv[])
 			
 			if (compressor.Result == COMPRESS_RESULT::IMPOSSIBLE_TOO_SMALL)
 			{
-				printf("ERROR!\nCannot compress files smaller than 7 bytes.\n", outputPath);
+				printf("ERROR!\nCannot compress files smaller than 7 bytes.\n");
 				result = 4;
 			}
 			else
@@ -99,7 +99,7 @@ int main(int argc, const char* argv[])
 
 				if (compressor.Result == COMPRESS_RESULT::IMPOSSIBLE_TOO_BAD)
 				{
-					printf("ERROR!\nCannot save compressed file because it is larger than 65535 bytes.\n", outputPath);
+					printf("ERROR!\nCannot save compressed file because it is larger than 65535 bytes.\n");
 					result = 4;
 				}
 				else
@@ -118,7 +118,7 @@ int main(int argc, const char* argv[])
 						if (written != compressor.OutputSize)
 						{
 							// delete incomplete compressed file
-							remove(argv[2]);
+							remove(outputPath);
 							printf("Error writing output file\n");
 							result = 5;
 						}
