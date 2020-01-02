@@ -28,6 +28,15 @@ void PrintUsage()
 	printf("\n");
 }
 
+bool file_exists(const char* path)
+{
+	FILE* f = fopen(path, "r");
+	if (f != NULL) {
+		fclose(f);
+	}
+	return (f != NULL);
+}
+
 int main(int argc, const char* argv[])
 {
 	PrintVersion();
@@ -90,27 +99,36 @@ int main(int argc, const char* argv[])
 			printf("compression: %d / %d = %.3f%s\n", compressor.OutputSize, compressor.InputSize, ratio, stored);
 
 			printf("Writing compressed file: %s\n", outputPath);
-			FILE* fOut = fopen(outputPath, "wb");
-			if (!fOut)
+			if (file_exists(outputPath))
 			{
-				printf("Error writing output file\n");
+				// we don't want overwriting file
+				printf("Error: output file already exists\n");
 				result = 5;
 			}
 			else
 			{
-				size_t written = fwrite(compressor.Output, 1, compressor.OutputSize, fOut);
-				fclose(fOut);
-				if (written != compressor.OutputSize)
+				FILE* fOut = fopen(outputPath, "wb");
+				if (!fOut)
 				{
-					// delete incomplete compressed file
-					remove(outputPath);
 					printf("Error writing output file\n");
 					result = 5;
 				}
 				else
 				{
-					printf("All OK\n");
-					result = 0;
+					size_t written = fwrite(compressor.Output, 1, compressor.OutputSize, fOut);
+					fclose(fOut);
+					if (written != compressor.OutputSize)
+					{
+						// delete incomplete compressed file
+						remove(outputPath);
+						printf("Error writing output file\n");
+						result = 5;
+					}
+					else
+					{
+						printf("All OK\n");
+						result = 0;
+					}
 				}
 			}
 		}
