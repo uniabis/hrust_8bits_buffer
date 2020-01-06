@@ -102,7 +102,9 @@ int main(int argc, const char* argv[])
 				printf("time = %.3f \n", duration);
 
 				double ratio = (double)compressor.OutputSize / compressor.InputSize;
-				//if (ratio > 1) ratio = max(ratio, 1.001);
+				if (ratio > 1) {
+					ratio = max(ratio, 1.001);
+				}
 				char* ratioWarning = (compressor.OutputSize >= compressor.InputSize) ? "(!)" : "";
 				printf("compression: %d / %d = %.3f%s\n", compressor.OutputSize, compressor.InputSize, ratio, ratioWarning);
 

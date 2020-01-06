@@ -23,6 +23,7 @@ void Compressor::CompressAuto()
 	{
 		// compression impossible, use Store method
 		CompressStore();
+		Stored = true;
 	}
 	else
 	{

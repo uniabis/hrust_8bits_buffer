@@ -93,10 +93,12 @@ int main(int argc, const char* argv[])
 			double duration = (double)(t1 - t0) / CLOCKS_PER_SEC;
 			printf("time = %.3f \n", duration);
 
-			double ratio = (double)compressor.OutputSize / compressor.InputSize;
-			//if (ratio > 1) ratio = max(ratio, 1.001);
-			char* stored = compressor.Stored ? "  (stored!)" : "";
-			printf("compression: %d / %d = %.3f%s\n", compressor.OutputSize, compressor.InputSize, ratio, stored);
+			double ratio = (double)compressor.OutputSize / max(compressor.InputSize, 1);
+			if (ratio > 1) {
+				ratio = max(ratio, 1.001);
+			}
+			char* warning = compressor.Stored ? "  (stored!)" : "";
+			printf("compression: %d / %d = %.3f%s\n", compressor.OutputSize, compressor.InputSize, ratio, warning);
 
 			printf("Writing compressed file: %s\n", outputPath);
 			if (file_exists(outputPath))
