@@ -10,13 +10,13 @@ Compressor compressor;
 void PrintVersion()
 {
 	printf("\n");
-	printf("Optimal Hrust 1.3 compressor, ");
+	printf("Optimal Hrust 1.3 compressor ");
 	#ifdef _WIN64
-		printf("x64\n");
+		printf("(x64)\n");
 	#else
-		printf("x86\n");
+		printf("(x86)\n");
 	#endif
-	printf("version 2020.01.02\n");
+	printf("version 2020.01.04\n");
 	printf("by Eugene Larchenko (https://gitlab.com/eugene77)\n");
 	printf("\n");
 }
@@ -105,7 +105,7 @@ int main(int argc, const char* argv[])
 				if (ratio > 1) {
 					ratio = max(ratio, 1.001);
 				}
-				char* ratioWarning = (compressor.OutputSize >= compressor.InputSize) ? "(!)" : "";
+				char* ratioWarning = (compressor.OutputSize >= compressor.InputSize) ? " (!)" : "";
 				printf("compression: %d / %d = %.3f%s\n", compressor.OutputSize, compressor.InputSize, ratio, ratioWarning);
 
 				if (compressor.Result == COMPRESS_RESULT::IMPOSSIBLE_TOO_BAD)

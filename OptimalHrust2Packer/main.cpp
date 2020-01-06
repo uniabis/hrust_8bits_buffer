@@ -10,13 +10,13 @@ Compressor compressor;
 void PrintVersion()
 {
 	printf("\n");
-	printf("Optimal Hrust 2.1 compressor, ");
+	printf("Optimal Hrust 2.1 compressor ");
 	#ifdef _WIN64
-		printf("x64\n");
+		printf("(x64)\n");
 	#else
-		printf("x86\n");
+		printf("(x86)\n");
 	#endif
-	printf("version 2020.01.02\n");
+	printf("version 2020.01.04\n");
 	printf("by Eugene Larchenko (https://gitlab.com/eugene77)\n");
 	printf("\n");
 }
