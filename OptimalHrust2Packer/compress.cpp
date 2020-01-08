@@ -120,103 +120,103 @@ void Compressor::finalizeBitFlow()
 
 void Compressor::emitLargeCnt(int cnt)
 {
-    if (cnt < 3)
+	if (cnt < 3)
 	{
 		throw; // something is wrong
 	}
-    if (cnt == 3)
-    {
-        emitBit(1);
-        emitBit(0);
-    }
-    else if (cnt < 16) // 4..15
-    {
-        for (int i = 0; i < 5 && cnt >= 0; i++)
-        {
-            int t = min(cnt, 3);
-            emitBit(t >> 1);
-            emitBit(t >> 0);
-            cnt -= 3;
-        };
-    }
-    else // 16..0xFFF
-    {
-        emitBit(1);
-        emitBit(1);
-        emitBit(0);
-        emitBit(0);
-        emitBit(1);
-        if (cnt < 256)
-        {
-            emitByte(cnt);
-        }
-        else
-        {
-            if (cnt > 0xFFF) throw;
-            emitByte(cnt >> 8);
-            emitByte(cnt >> 0);
-        }
-    }
+	if (cnt == 3)
+	{
+		emitBit(1);
+		emitBit(0);
+	}
+	else if (cnt < 16) // 4..15
+	{
+		for (int i = 0; i < 5 && cnt >= 0; i++)
+		{
+			int t = min(cnt, 3);
+			emitBit(t >> 1);
+			emitBit(t >> 0);
+			cnt -= 3;
+		};
+	}
+	else // 16..0xFFF
+	{
+		emitBit(1);
+		emitBit(1);
+		emitBit(0);
+		emitBit(0);
+		emitBit(1);
+		if (cnt < 256)
+		{
+			emitByte(cnt);
+		}
+		else
+		{
+			if (cnt > 0xFFF) throw;
+			emitByte(cnt >> 8);
+			emitByte(cnt >> 0);
+		}
+	}
 };
 
 void Compressor::emitLongDist(int dist)
 {
-    int H = dist >> 8;
-    if (H == -1)
-    {
-        emitBit(1);
-    }
-    else
-    {
-        emitBit(0);
-        if (H >= -3)
-        {
-            emitBit(1);
-            emitBit(1);
-            emitBit(~H);
-        }
-        else if (H >= -7)
-        {
-            emitBit(1);
-            emitBit(0);
-            H += 3;
-            emitBit(H >> 1);
-            emitBit(H >> 0);
-        }
-        else if (H >= -15)
-        {
-            emitBit(0);
-            emitBit(1);
-            H += 7;
-            emitBit(H >> 2);
-            emitBit(H >> 1);
-            emitBit(H >> 0);
-        }
-        else // H <= -16
-        {
-            emitBit(0);
-            emitBit(0);
-            if (H >= -30)
-            {
-                H += 15;
-                emitBit(H >> 3);
-                emitBit(H >> 2);
-                emitBit(H >> 1);
-                emitBit(H >> 0);
-            }
-            else
-            {
-                if (dist < -65535) throw;
-                emitBit(0);
-                emitBit(0);
-                emitBit(0);
-                emitBit(0);
-                emitByte(H);
-            }
-        }
-    }
+	int H = dist >> 8;
+	if (H == -1)
+	{
+		emitBit(1);
+	}
+	else
+	{
+		emitBit(0);
+		if (H >= -3)
+		{
+			emitBit(1);
+			emitBit(1);
+			emitBit(~H);
+		}
+		else if (H >= -7)
+		{
+			emitBit(1);
+			emitBit(0);
+			H += 3;
+			emitBit(H >> 1);
+			emitBit(H >> 0);
+		}
+		else if (H >= -15)
+		{
+			emitBit(0);
+			emitBit(1);
+			H += 7;
+			emitBit(H >> 2);
+			emitBit(H >> 1);
+			emitBit(H >> 0);
+		}
+		else // H <= -16
+		{
+			emitBit(0);
+			emitBit(0);
+			if (H >= -30)
+			{
+				H += 15;
+				emitBit(H >> 3);
+				emitBit(H >> 2);
+				emitBit(H >> 1);
+				emitBit(H >> 0);
+			}
+			else
+			{
+				if (dist < -65535) throw;
+				emitBit(0);
+				emitBit(0);
+				emitBit(0);
+				emitBit(0);
+				emitByte(H);
+			}
+		}
+	}
 
-    emitByte(dist & 0xFF);
+	emitByte(dist & 0xFF);
 };
 
 // Builds final compressed block using precalculations 
@@ -244,7 +244,7 @@ void Compressor::Compress_Emit() {
 	emitByte(packedSize >> 0);
 	emitByte(packedSize >> 8);
 
-    // backup last 6 bytes
+	// backup last 6 bytes
 
 	for (int i = 0; i < 6; i++)
 		emitByte(Input[InputSize - 6 + i]);
@@ -252,82 +252,82 @@ void Compressor::Compress_Emit() {
 	// Compressed data
 
 	int endpos = InputSize - 6; // omit last 6 bytes
-    int pos = 0;
+	int pos = 0;
 
 	emitByte(Input[pos++]);	// first byte is simply copied
 
-    while (pos != endpos)
-    {
-        if (pos > endpos) throw; // something is wrong
+	while (pos != endpos)
+	{
+		if (pos > endpos) throw; // something is wrong
 	
 		Backref cmd = optimalCompressor.GetOptimalOp(pos);
 
-        if (cmd.Count == 0)
-        {
-            throw;
-        }
-        else if (cmd.Count == -1) // copy 1 byte
-        {
-            emitBit(1);
-            emitByte(Input[pos++]);
-        }
-        else if (cmd.Count < -1) // copy 12..42 bytes
-        {
-            int cnt = -cmd.Count;
-            if (cnt < 12 || cnt > 42 || cnt % 2 != 0) throw;
-            emitBit(0);
-            emitBit(1);
-            emitBit(1);
-            emitBit(0);
-            emitBit(0);
-            emitBit(0);
-            int c = (cnt - 12) / 2;
-            for (int i = 3; i >= 0; i--) emitBit(c >> i);
+		if (cmd.Count == 0)
+		{
+			throw;
+		}
+		else if (cmd.Count == -1) // copy 1 byte
+		{
+			emitBit(1);
+			emitByte(Input[pos++]);
+		}
+		else if (cmd.Count < -1) // copy 12..42 bytes
+		{
+			int cnt = -cmd.Count;
+			if (cnt < 12 || cnt > 42 || cnt % 2 != 0) throw;
+			emitBit(0);
+			emitBit(1);
+			emitBit(1);
+			emitBit(0);
+			emitBit(0);
+			emitBit(0);
+			int c = (cnt - 12) / 2;
+			for (int i = 3; i >= 0; i--) emitBit(c >> i);
 			for (int i = 0; i < cnt; i++) emitByte(Input[pos++]);
-        }
-        else // backreference
-        {
-            if (cmd.Dist >= 0)
+		}
+		else // backreference
+		{
+			if (cmd.Dist >= 0)
 			{
 				throw;
 			}
-            if (cmd.Count == 1)
-            {
-                if (cmd.Dist < -8) throw;
-                emitBit(0);
-                emitBit(0);
-                emitBit(0);
-                emitBit(cmd.Dist >> 2);
-                emitBit(cmd.Dist >> 1);
-                emitBit(cmd.Dist >> 0);
-            }
-            else if (cmd.Count == 2)
-            {
-                if (cmd.Dist < -256) throw;
-                emitBit(0);
-                emitBit(0);
-                emitBit(1);
-                emitByte((byte)cmd.Dist);
-            }
-            else
-            {
-                emitBit(0);
-                emitLargeCnt(cmd.Count);
-                emitLongDist(cmd.Dist);
-            }
-            pos += cmd.Count;
-        }
+			if (cmd.Count == 1)
+			{
+				if (cmd.Dist < -8) throw;
+				emitBit(0);
+				emitBit(0);
+				emitBit(0);
+				emitBit(cmd.Dist >> 2);
+				emitBit(cmd.Dist >> 1);
+				emitBit(cmd.Dist >> 0);
+			}
+			else if (cmd.Count == 2)
+			{
+				if (cmd.Dist < -256) throw;
+				emitBit(0);
+				emitBit(0);
+				emitBit(1);
+				emitByte((byte)cmd.Dist);
+			}
+			else
+			{
+				emitBit(0);
+				emitLargeCnt(cmd.Count);
+				emitLongDist(cmd.Dist);
+			}
+			pos += cmd.Count;
+		}
 	}
 
-    // end of stream marker
+	// end of stream marker
 
-    emitBit(0);
-    emitBit(1);
-    emitBit(1);
-    emitBit(0);
-    emitBit(0);
-    emitBit(1);
-    emitByte(0);
+	emitBit(0);
+	emitBit(1);
+	emitBit(1);
+	emitBit(0);
+	emitBit(0);
+	emitBit(1);
+	emitByte(0);
 
 	// finally
 
@@ -373,70 +373,70 @@ int OptimalCompressor::Preprocess()
 
 	cost[inputSize] = 0;
 
-    for (int pos = inputSize - 1; pos >= 1; pos--)
-    {
+	for (int pos = inputSize - 1; pos >= 1; pos--)
+	{
 		if ((pos & 0x3FF) == 0)
 		{
 			if (ProgressReport)
 				ProgressReport->Report(inputSize, inputSize - pos);
 		}
 
-        int result;
+		int result;
 
-        // try copy 1 byte
+		// try copy 1 byte
 
-        result = 1 + 8 + cost[pos + 1];
+		result = 1 + 8 + cost[pos + 1];
 		Backref resultOp(-1, 0);
 
-        // try copy 12, 14..42 bytes
+		// try copy 12, 14..42 bytes
 
-        for (int i = 0; i < 16; i++)
-        {
-            int cnt = i * 2 + 12;
-            if (pos + cnt > inputSize) {
+		for (int i = 0; i < 16; i++)
+		{
+			int cnt = i * 2 + 12;
+			if (pos + cnt > inputSize) {
 				break;
 			}
-            int t = 6 + 4 + cnt * 8 + cost[pos + cnt];
-            if (t < result) {
+			int t = 6 + 4 + cnt * 8 + cost[pos + cnt];
+			if (t < result) {
 				result = t; resultOp = Backref(-cnt, 0); 
 			}
-        }
+		}
 
-        // try backreferences
+		// try backreferences
 
-        {
+		{
 			fill_matchLen(pos);
-            int cnt = 0;
-            int nextPos = pos;
-            for (int dist = -1; dist >= -pos; dist--)
-            {
+			int cnt = 0;
+			int nextPos = pos;
+			for (int dist = -1; dist >= -pos; dist--)
+			{
 				//if (dist < -0xFFFF) break;
-                int matchCnt = matchLen[dist + inputSize];
+				int matchCnt = matchLen[dist + inputSize];
 
-                while (cnt + 1 <= matchCnt)
-                {
-                    if (nextPos >= inputSize) {
+				while (cnt + 1 <= matchCnt)
+				{
+					if (nextPos >= inputSize) {
 						goto break_dist_loop;
 					}
-                    if (cnt >= 0xFFF) { // backref cnt limit
+					if (cnt >= 0xFFF) { // backref cnt limit
 						goto break_dist_loop;
 					}
-                    cnt++;
-                    nextPos++;
+					cnt++;
+					nextPos++;
 
-                    Backref br(cnt, dist);
-                    int t = br.GetEncodedLen() + cost[pos + cnt];
-                    if (t < result) {
+					Backref br(cnt, dist);
+					int t = br.GetEncodedLen() + cost[pos + cnt];
+					if (t < result) {
 						result = t; resultOp = br; 
 					}
-                }
-            }
+				}
+			}
 			break_dist_loop: ;
-        }
+		}
 
-        cost[pos] = result;
-        solution[pos] = resultOp;
-    }
+		cost[pos] = result;
+		solution[pos] = resultOp;
+	}
 
 	// return compressed size in bits
 
@@ -448,40 +448,40 @@ int OptimalCompressor::Preprocess()
 // Finds longest match for every possible reference distance
 void OptimalCompressor::fill_matchLen(int pos)
 {
-    if (pos >= inputSize) throw;
+	if (pos >= inputSize) throw;
 
-    int sstart = inputOffset - (inputSize - pos);
-    int n = inputSize + (inputSize - pos);
+	int sstart = inputOffset - (inputSize - pos);
+	int n = inputSize + (inputSize - pos);
 
 	#define z matchLen
 	byte* s = input + sstart;
 
 	// © https://e-maxx.ru/algo/z_function
 
-    int l = 0, r = 0;
-    for (int i = 1; i < inputSize; i++)
-    {
-        int zi;
-        if (i > r)
-            zi = 0;
-        else
-            zi = min(z[i - l], r + 1 - i);
+	int l = 0, r = 0;
+	for (int i = 1; i < inputSize; i++)
+	{
+		int zi;
+		if (i > r)
+			zi = 0;
+		else
+			zi = min(z[i - l], r + 1 - i);
 
-        while (i + zi < n && s[i + zi] == s[zi])
-        {
-            zi++;
-        }
+		while (i + zi < n && s[i + zi] == s[zi])
+		{
+			zi++;
+		}
 
-        if (i + zi - 1 > r)
-        {
-            r = i + zi - 1;
-            l = i;
-        }
+		if (i + zi - 1 > r)
+		{
+			r = i + zi - 1;
+			l = i;
+		}
 
-        z[i] = zi;
-    }
+		z[i] = zi;
+	}
 
-    // z[0] is undefined
+	// z[0] is undefined
 }
 
 static const int encodedCntLen[16] = { -1, -1, -1, 3, 5, 5, 7, 7, 7, 9, 9, 9, 11, 11, 11, 11 };
@@ -496,22 +496,22 @@ static const byte encodedDistLen[] = {
 
 int Backref::GetEncodedLen()
 {
-    //if (Count <= 0) throw;
-    //if (Dist >= 0) throw;
+	//if (Count <= 0) throw;
+	//if (Dist >= 0) throw;
 
 	#define infinity 0x0FFFFFFF
 	#define impossible infinity
 
-    if (Count == 1) return (Dist >= -8) ? 6 : impossible;
-    if (Count == 2) return (Dist >= -256) ? 3 + 8 : impossible;
+	if (Count == 1) return (Dist >= -8) ? 6 : impossible;
+	if (Count == 2) return (Dist >= -256) ? 3 + 8 : impossible;
 
 	//if (Dist < -0xFFFF) throw;
 	int distBits = encodedDistLen[(Dist >> 8) + 256];  // 9...23
 
 	if (Count < 16) return encodedCntLen[Count] + distBits;
-    if (Count < 256) return (6 + 8) + distBits;
-    if (Count < 0x1000) return (6 + 8 + 8) + distBits;
-    return impossible;
+	if (Count < 256) return (6 + 8) + distBits;
+	if (Count < 0x1000) return (6 + 8 + 8) + distBits;
+	return impossible;
 
 	#undef impossible
 };
