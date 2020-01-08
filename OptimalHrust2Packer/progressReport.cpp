@@ -1,4 +1,4 @@
-
+﻿
 #include "progressReport.h"
 #include <memory.h>
 #include <stdio.h>

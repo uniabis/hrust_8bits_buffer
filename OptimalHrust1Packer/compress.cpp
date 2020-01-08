@@ -1,4 +1,4 @@
-
+п»ї
 /*
 Copyright (c) 2015-2020 Eugene Larchenko, el6345@gmail.com
 Published under the MIT License
@@ -31,7 +31,7 @@ void Compressor::TryCompress()
 		Compress_Emit();
 		if (OutputSize > 0xFFFF)
 		{
-			// невозможно сформировать заголовок
+			// РЅРµРІРѕР·РјРѕР¶РЅРѕ СЃС„РѕСЂРјРёСЂРѕРІР°С‚СЊ Р·Р°РіРѕР»РѕРІРѕРє
 			Result = COMPRESS_RESULT::IMPOSSIBLE_TOO_BAD;
 		}
 		else
@@ -48,7 +48,7 @@ void Compressor::Compress_Preprocess()
 {
 	if (InputSize < 6 + 1)
 	{
-		// применить сжатие невозможно
+		// РїСЂРёРјРµРЅРёС‚СЊ СЃР¶Р°С‚РёРµ РЅРµРІРѕР·РјРѕР¶РЅРѕ
 		throw;
 	}
 
@@ -537,7 +537,7 @@ void OptimalCompressor::fill_matchLen(int pos)
 	#define z matchLen
 	byte* s = input + sstart;
 
-	// © https://e-maxx.ru/algo/z_function
+	// В© https://e-maxx.ru/algo/z_function
 
 	int l = 0, r = 0;
 	for (int i = 1; i < inputSize; i++)

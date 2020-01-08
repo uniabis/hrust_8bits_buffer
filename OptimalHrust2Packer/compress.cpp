@@ -1,4 +1,4 @@
-
+п»ї
 /*
 Copyright (c) 2015-2020 Eugene Larchenko, el6345@gmail.com
 Published under the MIT License
@@ -30,8 +30,8 @@ void Compressor::CompressAuto()
 		int storedSize = GetStoredPackedSize();
 		Compress_Preprocess();
 		if (
-			storedSize <= compressedSize || // файл не жмётся
-			compressedSize > 0xFFFF			// невозможно сформировать заголовок
+			storedSize <= compressedSize || // С„Р°Р№Р» РЅРµ Р¶РјС‘С‚СЃСЏ
+			compressedSize > 0xFFFF			// РЅРµРІРѕР·РјРѕР¶РЅРѕ СЃС„РѕСЂРјРёСЂРѕРІР°С‚СЊ Р·Р°РіРѕР»РѕРІРѕРє
 			)
 		{
 			CompressStore();
@@ -71,7 +71,7 @@ void Compressor::Compress_Preprocess()
 {
 	if (InputSize < 6 + 1)
 	{
-		// применить сжатие невозможно
+		// РїСЂРёРјРµРЅРёС‚СЊ СЃР¶Р°С‚РёРµ РЅРµРІРѕР·РјРѕР¶РЅРѕ
 		throw;
 	}
 
@@ -225,7 +225,7 @@ void Compressor::Compress_Emit() {
 
 	if (compressedSize > 0xFFFF)
 	{
-		// невозможно сформировать заголовок
+		// РЅРµРІРѕР·РјРѕР¶РЅРѕ СЃС„РѕСЂРјРёСЂРѕРІР°С‚СЊ Р·Р°РіРѕР»РѕРІРѕРє
 		throw;
 	}
 
@@ -456,7 +456,7 @@ void OptimalCompressor::fill_matchLen(int pos)
 	#define z matchLen
 	byte* s = input + sstart;
 
-	// © https://e-maxx.ru/algo/z_function
+	// В© https://e-maxx.ru/algo/z_function
 
 	int l = 0, r = 0;
 	for (int i = 1; i < inputSize; i++)
