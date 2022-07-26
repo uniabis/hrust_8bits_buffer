@@ -15,12 +15,15 @@ Published under the MIT License
 Compressor::Compressor()
 {
 	memset(this, 0, sizeof(*this));
+
+	AddHeader = true;
+	TailBytes = 6;
 };
 
 
 void Compressor::TryCompress()
 {
-	if (InputSize < 6 + 1)
+	if (InputSize < TailBytes + 1)
 	{
 		// compression impossible
 		Result = COMPRESS_RESULT::IMPOSSIBLE_TOO_SMALL;
@@ -36,7 +39,9 @@ void Compressor::TryCompress()
 		}
 		else
 		{
-			*(WORD*)&Output[4] = (WORD)OutputSize; // set packed size in header
+			if (AddHeader) {
+				*(WORD*)&Output[4] = (WORD)OutputSize; // set packed size in header
+			}
 			Result = COMPRESS_RESULT::OK;
 		}
 
@@ -46,22 +51,22 @@ void Compressor::TryCompress()
 
 void Compressor::Compress_Preprocess()
 {
-	if (InputSize < 6 + 1)
+	if (InputSize < TailBytes + 1)
 	{
 		// применить сжатие невозможно
 		throw;
 	}
 
 	optimalCompressor.ProgressReport = &this->ProgressReport;
-	optimalCompressor.Init(Input, InputSize - 6); // last 6 bytes are never compressed
+	optimalCompressor.Init(Input, InputSize - TailBytes); // last 6 bytes are never compressed
 	int packedBitsCount = optimalCompressor.Preprocess();
 
 	packedBitsCount += 7 + 7; // end of stream literal
 
 	compressedSizePrecalc =
-		6 + // header
-		6 + // last 6 bytes
-		(packedBitsCount + 7) / 8; 
+		((AddHeader) ? 6 : 0) + // header
+		TailBytes + // last 6 bytes
+		(packedBitsCount + 7) / 8;
 	// NOTE: calculated result may be 1 byte less than it should because of unused bits in last bitflow word
 };
 
@@ -188,17 +193,23 @@ void Compressor::Compress_Emit() {
 	
 	// Header
 
-	emitByte('H');
-	emitByte('R');
-	emitByte(InputSize >> 0);
-	emitByte(InputSize >> 8);
-	emitByte(0); // placeholder for
-	emitByte(0); // compressed size
+	if (AddHeader) {
+
+		emitByte('H');
+		emitByte('R');
+		emitByte(InputSize >> 0);
+		emitByte(InputSize >> 8);
+		emitByte(0); // placeholder for
+		emitByte(0); // compressed size
+
+	}
 
 	// backup last 6 bytes
 
-	for (int i = 0; i < 6; i++)
-		emitByte(Input[InputSize - 6 + i]);
+	if (TailBytes > 0) {
+		for (int i = 0; i < TailBytes; i++)
+			emitByte(Input[InputSize - TailBytes + i]);
+	}
 
 	// emit first bitflow word
 
@@ -209,7 +220,7 @@ void Compressor::Compress_Emit() {
 
 	// Compressed data
 
-	int endpos = InputSize - 6; // omit last 6 bytes
+	int endpos = InputSize - TailBytes; // omit last 6 bytes
 	int pos = 0;
 
 	emitByte(Input[pos++]);	// first byte is simply copied

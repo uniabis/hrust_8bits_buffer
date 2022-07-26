@@ -80,6 +80,9 @@ public:
 	int OutputSize;
 	COMPRESS_RESULT Result;
 
+	bool AddHeader;
+	int TailBytes;
+
 	Compressor();
 	void Compressor::TryCompress();
 

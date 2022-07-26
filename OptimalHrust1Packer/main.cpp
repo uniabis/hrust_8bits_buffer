@@ -24,7 +24,7 @@ void PrintVersion()
 void PrintUsage()
 {
 	printf("Usage:\n");
-	printf("oh1c.exe <input> [<output>]\n");
+	printf("oh1c.exe [-r] <input> [<output>]\n");
 	printf("\n");
 }
 
@@ -40,6 +40,14 @@ bool file_exists(const char* path)
 int main(int argc, const char* argv[])
 {
 	PrintVersion();
+
+	if (argc > 1 && strcmp(argv[1], "-r") == 0)
+	{
+		compressor.AddHeader = false;
+		compressor.TailBytes = 0;
+		argc--;
+		argv++;
+	}
 
 	if (argc < 2 || argc > 3)
 	{
