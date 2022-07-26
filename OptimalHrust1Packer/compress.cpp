@@ -97,14 +97,20 @@ void Compressor::emitBit(int bit)
 	{
 		if (controlBitsCnt >= 8) throw; // should never happen
 
+		if (controlBytePtr == nullptr)
+		{
+			controlBytePtr = outputPtr;
+			*controlBytePtr = 0;
+			outputPtr++;
+		}
+
 		*controlBytePtr = (*controlBytePtr) * 2 + (bit & 1);
 		controlBitsCnt++;
 
 		if (controlBitsCnt == 8)
 		{
 			controlBitsCnt = 0;
-			controlBytePtr = outputPtr;
-			*outputPtr++ = 0;
+			controlBytePtr = nullptr;
 		}
 	}
 	else
@@ -131,13 +137,7 @@ void Compressor::finalizeBitFlow()
 	}
 	else if (BitBufferLength == 8)
 	{
-		if (controlBitsCnt == 0)
-		{
-			// remove last control word if it is empty
-			outputPtr -= 1;
-			if (controlBytePtr != outputPtr) throw;
-		}
-		else
+		if (controlBytePtr != nullptr)
 		{
 			for( ; controlBitsCnt != 8; controlBitsCnt++)
 				*controlBytePtr <<= 1;
@@ -256,6 +256,7 @@ void Compressor::Compress_Emit() {
 
 	// emit first bitflow word
 
+	int reverseFirstBit = 0;
 	controlBitsCnt = 0;
 	if (BitBufferLength == 16)
 	{
@@ -265,8 +266,8 @@ void Compressor::Compress_Emit() {
 	}
 	else if (BitBufferLength == 8)
 	{
-		controlBytePtr = outputPtr;
-		*outputPtr++ = 0;
+		controlBytePtr = nullptr;
+		reverseFirstBit = 1;
 	}
 	else
 	{
@@ -295,14 +296,14 @@ void Compressor::Compress_Emit() {
 		}
 		else if (cmd.Count == -1) // copy 1 byte
 		{
-			emitBit(1);
+			emitBit(1 ^ reverseFirstBit);
 			emitByte(Input[pos++]);
 		}
 		else if (cmd.Count < -1) // copy 12..42 bytes
 		{
 			int cnt = -cmd.Count;
 			if (cnt < 12 || cnt > 42 || cnt % 2 != 0) throw;
-			emitBit(0);
+			emitBit(0 ^ reverseFirstBit);
 			emitBit(1);
 			emitBit(1);
 			emitBit(0);
@@ -317,7 +318,7 @@ void Compressor::Compress_Emit() {
 		{
 			if (cmd.IsRIR)
 			{
-				emitBit(0);
+				emitBit(0 ^ reverseFirstBit);
 				if (cmd.Dist >= -16)
 				{
 					emitBit(1);
@@ -361,7 +362,7 @@ void Compressor::Compress_Emit() {
 						while (D != cmd.D)
 						{
 							D = (D & 7) + 1;
-							emitBit(0);
+							emitBit(0 ^ reverseFirstBit);
 							emitBit(0);
 							emitBit(1);
 							emitBit(1);
@@ -370,14 +371,14 @@ void Compressor::Compress_Emit() {
 						}
 					};
 					
-					emitBit(0);
+					emitBit(0 ^ reverseFirstBit);
 					emitLargeCnt(cmd.Count);
 					emitLongDist(cmd.Dist, D);
 				}
 
 				else if (cmd.Count == 2)
 				{
-					emitBit(0);
+					emitBit(0 ^ reverseFirstBit);
 					emitBit(0);
 					emitBit(1);
 					if (cmd.Dist >= -32)
@@ -413,7 +414,7 @@ void Compressor::Compress_Emit() {
 				else if (cmd.Count == 1)
 				{
 					if (cmd.Dist < -8) throw;
-					emitBit(0);
+					emitBit(0 ^ reverseFirstBit);
 					emitBit(0);
 					emitBit(0);
 					for (int i = 2; i >= 0; i--) emitBit(cmd.Dist >> i);
@@ -431,7 +432,7 @@ void Compressor::Compress_Emit() {
 
 	// end of stream marker
 
-	emitBit(0);
+	emitBit(0 ^ reverseFirstBit);
 	emitBit(1);
 	emitBit(1);
 	emitBit(0);
