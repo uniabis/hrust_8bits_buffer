@@ -174,7 +174,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="compress.cpp" />
-    <ClCompile Include="GetEncodedLen_LUT.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="progressReport.cpp" />
   </ItemGroup>

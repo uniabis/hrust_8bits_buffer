@@ -24,9 +24,6 @@
     <ClCompile Include="progressReport.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GetEncodedLen_LUT.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="compress.h">
