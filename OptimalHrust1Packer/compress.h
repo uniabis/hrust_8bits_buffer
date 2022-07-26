@@ -63,6 +63,7 @@ private:
 	void emitByte(int byte);
 
 	WORD* controlWordPtr;
+	byte* controlBytePtr;
 	int controlBitsCnt;
 	void emitBit(int bit);
 	void finalizeBitFlow();
@@ -80,8 +81,9 @@ public:
 	int OutputSize;
 	COMPRESS_RESULT Result;
 
-	bool AddHeader;
-	int TailBytes;
+	bool AddHeader;	// spke
+	int TailBytes;	// spke
+	int BitBufferLength;
 
 	Compressor();
 	void Compressor::TryCompress();

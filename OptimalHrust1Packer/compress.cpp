@@ -18,6 +18,7 @@ Compressor::Compressor()
 
 	AddHeader = true;
 	TailBytes = 6;
+	BitBufferLength = 16;
 };
 
 
@@ -77,32 +78,74 @@ void Compressor::emitByte(int byte_)
 
 void Compressor::emitBit(int bit) 
 {
-	if (controlBitsCnt >= 16) throw; // should never happen
-
-	*controlWordPtr = (*controlWordPtr) * 2 + (bit & 1);
-	controlBitsCnt++;
-
-	if (controlBitsCnt == 16)
+	if (BitBufferLength == 16)
 	{
-		controlBitsCnt = 0;
-		controlWordPtr = (WORD*)outputPtr;
-		*outputPtr++ = 0;
-		*outputPtr++ = 0;
+		if (controlBitsCnt >= 16) throw; // should never happen
+
+		*controlWordPtr = (*controlWordPtr) * 2 + (bit & 1);
+		controlBitsCnt++;
+
+		if (controlBitsCnt == 16)
+		{
+			controlBitsCnt = 0;
+			controlWordPtr = (WORD*)outputPtr;
+			*outputPtr++ = 0;
+			*outputPtr++ = 0;
+		}
+	}
+	else if (BitBufferLength == 8)
+	{
+		if (controlBitsCnt >= 8) throw; // should never happen
+
+		*controlBytePtr = (*controlBytePtr) * 2 + (bit & 1);
+		controlBitsCnt++;
+
+		if (controlBitsCnt == 8)
+		{
+			controlBitsCnt = 0;
+			controlBytePtr = outputPtr;
+			*outputPtr++ = 0;
+		}
+	}
+	else
+	{
+		throw; // should never happen
 	}
 };
 
 void Compressor::finalizeBitFlow()
 {
-	if (controlBitsCnt == 0)
+	if (BitBufferLength == 16)
 	{
-		// remove last control word if it is empty
-		outputPtr -= 2;
-		if ((byte*)controlWordPtr != outputPtr) throw;
+		if (controlBitsCnt == 0)
+		{
+			// remove last control word if it is empty
+			outputPtr -= 2;
+			if ((byte*)controlWordPtr != outputPtr) throw;
+		}
+		else
+		{
+			for( ; controlBitsCnt != 16; controlBitsCnt++)
+				*controlWordPtr <<= 1;
+		}
+	}
+	else if (BitBufferLength == 8)
+	{
+		if (controlBitsCnt == 0)
+		{
+			// remove last control word if it is empty
+			outputPtr -= 1;
+			if (controlBytePtr != outputPtr) throw;
+		}
+		else
+		{
+			for( ; controlBitsCnt != 8; controlBitsCnt++)
+				*controlBytePtr <<= 1;
+		}
 	}
 	else
 	{
-		for( ; controlBitsCnt != 16; controlBitsCnt++)
-			*controlWordPtr <<= 1;
+		throw; // should never happen
 	}
 };
 
@@ -214,9 +257,21 @@ void Compressor::Compress_Emit() {
 	// emit first bitflow word
 
 	controlBitsCnt = 0;
-	controlWordPtr = (WORD*)outputPtr;
-	*outputPtr++ = 0;
-	*outputPtr++ = 0;
+	if (BitBufferLength == 16)
+	{
+		controlWordPtr = (WORD*)outputPtr;
+		*outputPtr++ = 0;
+		*outputPtr++ = 0;
+	}
+	else if (BitBufferLength == 8)
+	{
+		controlBytePtr = outputPtr;
+		*outputPtr++ = 0;
+	}
+	else
+	{
+		throw; // should never happen
+	}
 
 	// Compressed data
 

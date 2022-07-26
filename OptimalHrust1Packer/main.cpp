@@ -48,6 +48,14 @@ int main(int argc, const char* argv[])
 		argc--;
 		argv++;
 	}
+	else if (argc > 1 && strcmp(argv[1], "-8") == 0)
+	{
+		compressor.AddHeader = false;
+		compressor.TailBytes = 0;
+		compressor.BitBufferLength = 8;
+		argc--;
+		argv++;
+	}
 
 	if (argc < 2 || argc > 3)
 	{
